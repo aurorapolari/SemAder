@@ -1,0 +1,66 @@
+[
+    {
+        "Branch": [],
+        "Loop": [],
+        "Normal": [
+            "Access settings for video playback",
+            "set mpv options for video rendering",
+            "We handle video url parsing and decoding",
+            "Always play the video when a new file is opened",
+            "mpv handles the video volume control",
+            "Force to use libmpv for hardware decoding",
+            "Configure cache for smoother video playback",
+            "Set update callback for video rendering"
+        ],
+        "FuncName": "mpvObject_8071 MpvObject.txt"
+    },
+    {
+        "Branch": [
+            {
+                "thenstr": [
+                    "f->channels = fmt.channels(); //remove? not available in libav9",
+                    "must be (not the last frame) exactly frame_size unless CODEC_CAP_VARIABLE_FRAME_SIZE is set (frame_size==0)",
+                    "TODO: mpv use pcmhack for avctx.frame_size==0. can we use input frame.samplesPerChannel?",
+                    "/f->quality = d.avctx->global_quality; //TODO",
+                    "TODO: record last pts. mpv compute pts internally and also use playback time",
+                    "pts is set in muxer",
+                    "bytes between 2 samples on a plane. TODO: add to AudioFormat? what about bytesPerFrame?",
+                    "Audio encoding for video frames"
+                ],
+                "elsestr": []
+            },
+            {
+                "thenstr": [
+                    "qWarning(error avcodec_encode_audio2: %s,av_err2str(ret));",
+                    "av_packet_unref(&pkt); //FIXME",
+                    "false",
+                    "Error encoding audio frame"
+                ],
+                "elsestr": []
+            },
+            {
+                "thenstr": [
+                    "invalid frame means eof",
+                    "End of video frame"
+                ],
+                "elsestr": []
+            }
+        ],
+        "Loop": [
+            {
+                "loopstr": [
+                    "frame.bytesPerLine(i); //",
+                    "Looping through video frames"
+                ]
+            }
+        ],
+        "Normal": [
+            "NULL",
+            "0",
+            "qDebug(enc avpkt.pts: %lld, dts: %lld., pkt.pts, pkt.dts);",
+            "qDebug(enc packet.pts: %.3f, dts: %.3f., d.packet.pts, d.packet.dts);",
+            "Video encoding and debugging"
+        ],
+        "FuncName": "AudioEncoderFFmpeg_7288 encode.txt"
+    }
+]

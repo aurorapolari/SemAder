@@ -1,0 +1,58 @@
+void heap_sort(int arr[],int size)
+{
+	int begin=0;
+	for(begin=size/2-1;begin>=0;--begin){
+		//adjust_down(arr,begin,size);
+		int parent=begin;
+		int left=begin*2+1;
+		int right=left+1;
+		while(left<size){
+			int max=left;
+			if(right<size && arr[right]>arr[max]){
+				max=right;
+			}
+			if(arr[max]>arr[parent]){
+				int tmp = arr[max];
+				arr[max] = arr[parent];
+				arr[parent] = tmp;
+				//swap(&arr[max],&arr[parent]);
+				parent=max;
+				left=parent*2+1;
+				right=left+1;
+			}
+			else{
+				break;
+			}
+		}
+	}
+	int end=size-1;
+	while(end>0){
+		//swap(&arr[0],&arr[end]);
+		int tmp = arr[0];
+		arr[0] = arr[end];
+		arr[end] = tmp;
+		//adjust_down(arr,0,end);
+		int parent=0;
+		int left=0*2+1;
+		int right=left+1;
+		while(left<end){
+			int max=left;
+			if(right<end && arr[right]>arr[max]){
+				max=right;
+			}
+			if(arr[max]>arr[parent]){
+				//swap(&arr[max],&arr[parent]);
+				tmp = arr[max];
+				arr[max] = arr[parent];
+				arr[parent] = tmp;
+				parent=max;
+				left=parent*2+1;
+				right=left+1;
+			}
+			else{
+				break;
+			}
+		}
+		--end;
+	}
+}

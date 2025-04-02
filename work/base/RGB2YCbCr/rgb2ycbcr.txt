@@ -1,0 +1,110 @@
+void rgb2ycbcr(const char* inputFileName, const char* outputFileName) {
+    FILE* inputFile = fopen(inputFileName, "rb");
+    if (!inputFile) {
+        return;
+    }
+    FILE* outputFile = fopen(outputFileName, "wb");
+    if (!outputFile) {
+        fclose(inputFile);
+        return;
+    }
+
+    // Video file header structure
+    typedef struct {
+        uint32_t width;
+        uint32_t height;
+        uint32_t frameCount;
+    } VideoHeader;
+    VideoHeader header;
+    if (fread(&header, sizeof(VideoHeader), 1, inputFile)!= 1) {
+        fclose(inputFile);
+        fclose(outputFile);
+        return;
+    }
+
+    uint32_t frameSize = header.width * header.height * 3;
+    uint8_t* frameBuffer = (uint8_t*)malloc(frameSize);
+    if (!frameBuffer) {
+        fclose(inputFile);
+        fclose(outputFile);
+        return;
+    }
+
+    if (fwrite(&header, sizeof(VideoHeader), 1, outputFile)!= 1) {
+        free(frameBuffer);
+        fclose(inputFile);
+        fclose(outputFile);
+        return;
+    }
+
+    for (uint32_t i = 0; i < header.frameCount; i++) {
+        if (fread(frameBuffer, 1, frameSize, inputFile)!= frameSize) {
+            break;
+        }
+
+        // RGB to YCbCr
+        uint8_t* ycbcrFrame = (uint8_t*)malloc(frameSize);
+        if (!ycbcrFrame) {
+            break;
+        }
+        for (uint32_t j = 0; j < header.width * header.height; j++) {
+            uint8_t r = frameBuffer[j * 3];
+            uint8_t g = frameBuffer[j * 3 + 1];
+            uint8_t b = frameBuffer[j * 3 + 2];
+            int y = (int)(0.299 * r + 0.587 * g + 0.114 * b);
+            int cb = (int)(128 - 0.168736 * r - 0.331264 * g + 0.5 * b);
+            int cr = (int)(128 + 0.5 * r - 0.418688 * g - 0.081312 * b);
+            ycbcrFrame[j * 3] = (uint8_t)y;
+            ycbcrFrame[j * 3 + 1] = (uint8_t)cb;
+            ycbcrFrame[j * 3 + 2] = (uint8_t)cr;
+        }
+
+        // Downsampling the Cb and Cr components of YCbCr.
+        uint32_t newWidth = header.width / 2;
+        uint32_t newHeight = header.height / 2;
+        uint8_t* newCbCr = (uint8_t*)malloc(newWidth * newHeight * 2);
+        if (!newCbCr) {
+            free(ycbcrFrame);
+            break;
+        }
+        for (uint32_t j = 0; j < newHeight; j++) {
+            for (uint32_t k = 0; k < newWidth; k++) {
+                uint32_t srcIndex = (j * 2 * header.width + k * 2) * 3 + 1;
+                newCbCr[(j * newWidth + k) * 2] = ycbcrFrame[srcIndex];
+                newCbCr[(j * newWidth + k) * 2 + 1] = ycbcrFrame[srcIndex + 1];
+            }
+        }
+        for (uint32_t j = 0; j < newHeight; j++) {
+            for (uint32_t k = 0; k < newWidth; k++) {
+                uint32_t dstIndex = (j * 2 * header.width + k * 2) * 3 + 1;
+                ycbcrFrame[dstIndex] = newCbCr[(j * newWidth + k) * 2];
+                ycbcrFrame[dstIndex + 1] = newCbCr[(j * newWidth + k) * 2 + 1];
+            }
+        }
+        free(newCbCr);
+
+        // YCbCr to RGB
+        for (uint32_t j = 0; j < header.width * header.height; j++) {
+            uint8_t y = ycbcrFrame[j * 3];
+            uint8_t cb = ycbcrFrame[j * 3 + 1];
+            uint8_t cr = ycbcrFrame[j * 3 + 2];
+            int r = (int)y + (int)(1.402 * (cr - 128));
+            int g = (int)y - (int)(0.344136 * (cb - 128)) - (int)(0.714136 * (cr - 128));
+            int b = (int)y + (int)(1.772 * (cb - 128));
+            r = r < 0? 0 : (r > 255? 255 : r);
+            g = g < 0? 0 : (g > 255? 255 : g);
+            b = b < 0? 0 : (b > 255? 255 : b);
+            frameBuffer[j * 3] = (uint8_t)r;
+            frameBuffer[j * 3 + 1] = (uint8_t)g;
+            frameBuffer[j * 3 + 2] = (uint8_t)b;
+        }
+
+        if (fwrite(frameBuffer, 1, frameSize, outputFile)!= frameSize) {
+        }
+        free(ycbcrFrame);
+    }
+
+    free(frameBuffer);
+    fclose(inputFile);
+    fclose(outputFile);
+}
