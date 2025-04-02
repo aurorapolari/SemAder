@@ -29,7 +29,7 @@ Source code analysis tool: Joern
 pip install networkx torch collections numpy tqdm scipy gym faiss pandas gensim openai transformers
 ```
 
-## 核心目录说明
+## Core catalog description
 
 ---
 
